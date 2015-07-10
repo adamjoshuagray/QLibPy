@@ -4,7 +4,7 @@ def calc_pv(fv, i, n, pmt):
     factors     = map(lambda k: 1 / pow(1 + i, k), exponents)
     pv_cfs      = map(lambda k: pmt * k, factors)
     pv_pr       = fv * 1 / pow(1 + i, n)
-    pv          = sum(pv_pr ++ pv_cfs)
+    pv          = sum([pv_pr] ++ pv_cfs)
     return pv
 
 
@@ -13,7 +13,7 @@ def calc_fv(pv, i, n, pmt):
     factors     = map(lambda k: pow(1 + i, k), exponents)
     fv_cfs      = map(lambda k: pmt * k, factors)
     fv_pr       = pv * pow(1 + i, n)
-    fv          = sum(fv_pr ++ fv_cfs)
+    fv          = sum([fv_pr] ++ fv_cfs)
 
 def calc_pmt(pv, fv, i, n):
     pass
