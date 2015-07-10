@@ -19,7 +19,26 @@ def calc_pmt(pv, fv, i, n):
     pass
 
 def calc_i(pv, fv, n, pmt):
-    pass
+    init_i      = 0.05
+    epsilon     = 0.0001 * pv
+    step_size   = 0.01
+    cnt         = True
+    i           = init_i
+    last_up     = True
+    while cnt:
+        cpv     = calc_pv(fv, i, n, pmt)
+        if abs(cpv - pv) <= epsilon:
+            cnt = False
+        elif cpv - pv > 0:
+            if not last_up:
+                step_size /= 2
+            i += step_size
+
+        elif cpv - pv < 0:
+            if last_up:
+                step_size /= 2
+            i -= step_size
+    return i
 
 def calc_n(pm, fv, i, pmt):
     pass
