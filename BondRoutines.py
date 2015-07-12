@@ -18,12 +18,8 @@ def calc_pv(fv, i, n, pmt):
 
 # TODO: FIXME
 def calc_fv(pv, i, n, pmt):
-    exponents   = range(1, n + 1)
-    factors     = map(lambda k: pow(1 + i, k), exponents)
-    fv_cfs      = map(lambda k: pmt * k, factors)
-    fv_pr       = pv * pow(1 + i, n)
-    fv          = sum([fv_pr] + fv_cfs)
-
+    expo
+    return fv
 # Calculates the payment which needs to be made each period
 # to give the future value given the present value, interest rate and
 # number of periods
@@ -33,7 +29,7 @@ def calc_fv(pv, i, n, pmt):
 # n     - the number of periods
 def calc_pmt(pv, fv, i, n):
     unit_pmts   = calc_pv(0, i, n, 1)
-    pmt         = (pv - fv * pow(1 + i, n)) / unit_pmts
+    pmt         = (pv - fv * pow(1 + i, -n)) / unit_pmts
     return pmt
 
 # Calculates the yeild to maturity of a sequence of payments given '
@@ -43,12 +39,12 @@ def calc_pmt(pv, fv, i, n):
 # n     - the number of periods
 # pmt   - the amortized payment made each period
 def calc_i(pv, fv, n, pmt):
-    fn      = lambda x: calc_pv(fv, x, n, pmt)
+    fn      = lambda x: calc_pv(fv, x, n, pmt) - pv
     # We realistically assume interest rates between - 100% and 100% per period.
-    a       = -1.0
+    a       = -0.99
     b       = 1.0
-    # We want to be within e-8 of pv
-    xtol    = 0.00000001 * pv
+    # We want to be within e-3 of pv
+    xtol    = 0.001
     i       = brentq(fn, a, b, xtol = xtol)
     return i
 
@@ -60,13 +56,13 @@ def calc_i(pv, fv, n, pmt):
 # i     - the interest rate per period
 # pmt   - the amortized payment made each period
 def calc_n(pv, fv, i, pmt):
-    fn      = lambda x: calc_pv(fv, i, x, pmt)
+    fn      = lambda x: calc_pv(fv, i, x, pmt) - pv 
     # We can never have a negative number of periods.
     a       = 0
     # After 200 periods additional periods really have no effect.
     b       = 200
-    # We want to be within e-8 of pv
-    xtol    = 0.00000001 * pv
+    # We want to be within e-3 of pv
+    xtol    = 0.003
     n       = brentq(fn, a, b, xtol = xtol)
     return n
 
