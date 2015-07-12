@@ -1,6 +1,13 @@
 
 from math import *
+from scipy.optimize import brentq
 
+# Calculates the present value of a series of amoritzing payments
+# and a principle given a certain interest rate.
+# fv    - the future value of the principle
+# i     - the interest rate for each period
+# n     - the number of periods
+# pmt   - the amortized payment made every period
 def calc_pv(fv, i, n, pmt):
     exponents   = range(1, int(ceil(n + 1)))
     factors     = map(lambda k: 1 / pow(1 + i, k), exponents)
@@ -9,7 +16,7 @@ def calc_pv(fv, i, n, pmt):
     pv          = sum([pv_pr] + pv_cfs)
     return pv
 
-
+# TODO: FIXME
 def calc_fv(pv, i, n, pmt):
     exponents   = range(1, n + 1)
     factors     = map(lambda k: pow(1 + i, k), exponents)
@@ -17,73 +24,50 @@ def calc_fv(pv, i, n, pmt):
     fv_pr       = pv * pow(1 + i, n)
     fv          = sum([fv_pr] + fv_cfs)
 
+# Calculates the payment which needs to be made each period
+# to give the future value given the present value, interest rate and
+# number of periods
+# pv    - the present value
+# fv    - the future value
+# i     - the interest rate for each period
+# n     - the number of periods
 def calc_pmt(pv, fv, i, n):
-    init_pmt    = 50.0
-    epsilon     = 0.0001 * pv
-    step_size   = 10.0
-    cnt         = True
-    pmt         = init_pmt
-    last_up     = True
-    while cnt:
-        cpv     = calc_pv(fv, i, n, pmt)
-        if abs(cpv - pv) <= epsilon:
-            cnt = False
-        elif cpv - pv < 0:
-            if not last_up:
-                step_size       /= 2
-                last_up         = True
-            pmt                 += step_size
-        elif cpv - pv > 0:
-            if last_up:
-                step_size       /= 2
-                last_up         = False
-            pmt                 -= step_size
+    unit_pmts   = calc_pv(0, i, n, 1)
+    pmt         = (pv - fv * pow(1 + i, n)) / unit_pmts
     return pmt
 
+# Calculates the yeild to maturity of a sequence of payments given '
+# a present value, future value, number and size of payments
+# pv    - the present value
+# fv    - the future value
+# n     - the number of periods
+# pmt   - the amortized payment made each period
 def calc_i(pv, fv, n, pmt):
-    init_i      = 0.05
-    epsilon     = 0.0001 * pv
-    step_size   = 0.01
-    cnt         = True
-    i           = init_i
-    last_up     = True
-    while cnt:
-        cpv     = calc_pv(fv, i, n, pmt)
-        if abs(cpv - pv) <= epsilon:
-            cnt = False
-        elif cpv - pv > 0:
-            if not last_up:
-                step_size       /= 2
-                last_up         = True
-            i   += step_size
-        elif cpv - pv < 0:
-            if last_up:
-                step_size       /= 2
-                last_up         = False
-            i   -= step_size
+    fn      = lambda x: calc_pv(fv, x, n, pmt)
+    # We realistically assume interest rates between - 100% and 100% per period.
+    a       = -1.0
+    b       = 1.0
+    # We want to be within e-8 of pv
+    xtol    = 0.00000001 * pv
+    i       = brentq(fn, a, b, xtol = xtol)
     return i
 
+# Calculates the number of payments which need to be made in order
+# to obtain the future value, give the present value, interest rate and
+# payment size per period
+# pv    - the present value
+# fv    - the future value
+# i     - the interest rate per period
+# pmt   - the amortized payment made each period
 def calc_n(pv, fv, i, pmt):
-    init_n      = 100.0
-    epsilon     = 0.00001 * pv
-    step_size   = 10.0
-    cnt         = True
-    n           = init_n
-    last_up     = True
-    while cnt:
-        cpv     = calc_pv(fv, i, n, pmt)
-        if abs(cpv - pv) <= epsilon:
-            cnt = False
-        elif cpv - pv > 0:
-            if not last_up:
-                step_size       = step_size / 2
-                last_up         = True
-            n   += step_size
-        elif cpv - pv < 0:
-            if last_up:
-                step_size       = step_size / 2
-                last_up         = False
-            n   -= step_size
+    fn      = lambda x: calc_pv(fv, i, x, pmt)
+    # We can never have a negative number of periods.
+    a       = 0
+    # After 200 periods additional periods really have no effect.
+    b       = 200
+    # We want to be within e-8 of pv
+    xtol    = 0.00000001 * pv
+    n       = brentq(fn, a, b, xtol = xtol)
     return n
 
 def calc_dv01(fv, i, n, pmt):
@@ -97,10 +81,3 @@ def calc_convex(fv, i, n, pmt):
     dv2     = calc_dv01(fv, i - 0.0001, n, pmt)
     convex  = (dv2 - dv1) / 2.0
     return convex
-
-def  calc_zero():
-    pass
-
-def compound(p, i, n):
-    c = p * pow(1 + i, n)
-    return c
