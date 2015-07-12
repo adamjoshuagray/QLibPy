@@ -4,7 +4,7 @@ from scipy.optimize import brentq
 
 # Calculates the present value of a series of amoritzing payments
 # and a principle given a certain interest rate.
-# fv    - the future value of the principle
+# fv    - the future value of the instrument
 # i     - the interest rate for each period
 # n     - the number of periods
 # pmt   - the amortized payment made every period
@@ -16,10 +16,19 @@ def calc_pv(fv, i, n, pmt):
     pv          = sum([pv_pr] + pv_cfs)
     return pv
 
-# TODO: FIXME
+# Calculates the future value of a series of amorizing payments
+# given a certain interest rate
+# pv    - the present value of the instrument
+# i     - the interest rate for each period
+# n     - the number of periods
+# pmt   - the amortized payment made every period
 def calc_fv(pv, i, n, pmt):
-    expo
+    exponents   = range(1, int(ceil(n + 1)))
+    factors     = map(lambda k: 1 / pow(1 + i, k), exponents)
+    pv_cfs      = map(lambda k: -pmt * k, factors)
+    fv          = sum([pv] + pv_cfs) * pow(1 + i, n)
     return fv
+    
 # Calculates the payment which needs to be made each period
 # to give the future value given the present value, interest rate and
 # number of periods
@@ -56,7 +65,7 @@ def calc_i(pv, fv, n, pmt):
 # i     - the interest rate per period
 # pmt   - the amortized payment made each period
 def calc_n(pv, fv, i, pmt):
-    fn      = lambda x: calc_pv(fv, i, x, pmt) - pv 
+    fn      = lambda x: calc_pv(fv, i, x, pmt) - pv
     # We can never have a negative number of periods.
     a       = 0
     # After 200 periods additional periods really have no effect.
