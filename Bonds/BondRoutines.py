@@ -5,30 +5,42 @@ from scipy.optimize import brentq
 # Calculates the present value of a series of amoritzing payments
 # and a principle given a certain interest rate.
 # fv    - the future value of the instrument
-# i     - the interest rate for each period
+# i     - the interest rate for each period (this may be an array)
 # n     - the number of periods
-# pmt   - the amortized payment made every period
-def calc_pv(fv, i, n, pmt):
+# pmt   - the amortized payment made every period (this may also be an array)
+def calc_pv(fv, i, n, pmts):
+    if type(pmts) is float:
+        pmts    = [pmts] * floor(n)
+    if type(i) is float:
+        i       = [i] * floor(n)
     exponents   = range(1, int(ceil(n + 1)))
-    factors     = map(lambda k: 1 / pow(1 + i, k), exponents)
-    pv_cfs      = map(lambda k: pmt * k, factors)
-    pv_pr       = fv * 1 / pow(1 + i, n)
+    fact_pairs  = zip(exponents, i)
+    factors     = map(lambda (e, j): 1 / pow(1 + j, e), fact_pairs)
+    pmt_pairs   = zip(factors, pmts)
+    pv_cfs      = map(lambda (f, p): p * f, pmt_pairs)
+    pv_pr       = fv * 1 / pow(1 + i[-1], n)
     pv          = sum([pv_pr] + pv_cfs)
     return pv
 
 # Calculates the future value of a series of amorizing payments
 # given a certain interest rate
 # pv    - the present value of the instrument
-# i     - the interest rate for each period
+# i     - the interest rate for each period (this may be an array)
 # n     - the number of periods
-# pmt   - the amortized payment made every period
-def calc_fv(pv, i, n, pmt):
+# pmt   - the amortized payment made every period (this may also be an array)
+def calc_fv(pv, i, n, pmts):
+    if type(pmts) is float:
+        pmts    = [pmts] * floor(n)
+    if type(i) is float:
+        i       =[i] * floor(n)
     exponents   = range(1, int(ceil(n + 1)))
-    factors     = map(lambda k: 1 / pow(1 + i, k), exponents)
-    pv_cfs      = map(lambda k: -pmt * k, factors)
-    fv          = sum([pv] + pv_cfs) * pow(1 + i, n)
+    fact_pairs  = zip(exponents, i)
+    factors     = map(lambda (e, j): 1 / pow(1 + j, e), fact_pairs)
+    pmt_pairs   = zip(factors, pmts)
+    pv_cfs      = map(lambda (f, p): -p * f, pmt_pairs)
+    fv          = sum([pv] + pv_cfs) * pow(1 + i[-1], n)
     return fv
-    
+
 # Calculates the payment which needs to be made each period
 # to give the future value given the present value, interest rate and
 # number of periods
